@@ -1,73 +1,58 @@
-import * as React from 'react'
-import { Form, Button } from 'semantic-ui-react'
-import Auth from '../auth/Auth'
-import { getUploadUrl, uploadFile } from '../api/todos-api'
-
-enum UploadState {
-  NoUpload,
-  FetchingPresignedUrl,
-  UploadingFile,
-}
-
-interface EditTodoProps {
-  match: {
-    params: {
-      todoId: string
-    }
-  }
-  auth: Auth
-}
-
-interface EditTodoState {
-  file: any
-  uploadState: UploadState
-}
+import * as React from 'react';
+import { Form, Button } from 'semantic-ui-react';
+import { getUploadUrl, uploadFile } from '../api/todos-api';
+import { iEditTodoProps } from '../types/iEditTodoProps';
+import { iEditTodoState } from '../types/iEditTodoState';
+import { UploadState } from '../types/UploadState';
 
 export class EditTodo extends React.PureComponent<
-  EditTodoProps,
-  EditTodoState
+  iEditTodoProps,
+  iEditTodoState
 > {
-  state: EditTodoState = {
+  state: iEditTodoState = {
     file: undefined,
-    uploadState: UploadState.NoUpload
-  }
+    uploadState: UploadState.NoUpload,
+  };
 
   handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files) return
+    const files = event.target.files;
+    if (!files) return;
 
     this.setState({
-      file: files[0]
-    })
-  }
+      file: files[0],
+    });
+  };
 
   handleSubmit = async (event: React.SyntheticEvent) => {
-    event.preventDefault()
+    event.preventDefault();
 
     try {
       if (!this.state.file) {
-        alert('File should be selected')
-        return
+        alert('File should be selected');
+        return;
       }
 
-      this.setUploadState(UploadState.FetchingPresignedUrl)
-      const uploadUrl = await getUploadUrl(this.props.auth.getIdToken(), this.props.match.params.todoId)
+      this.setUploadState(UploadState.FetchingPresignedUrl);
+      const uploadUrl = await getUploadUrl(
+        this.props.auth.getIdToken(),
+        this.props.match.params.todoId
+      );
 
-      this.setUploadState(UploadState.UploadingFile)
-      await uploadFile(uploadUrl, this.state.file)
+      this.setUploadState(UploadState.UploadingFile);
+      await uploadFile(uploadUrl, this.state.file);
 
-      alert('File was uploaded!')
+      alert('File was uploaded!');
     } catch (e) {
-      alert('Could not upload a file: ' + e.message)
+      alert('Could not upload a file: ' + e.message);
     } finally {
-      this.setUploadState(UploadState.NoUpload)
+      this.setUploadState(UploadState.NoUpload);
     }
-  }
+  };
 
   setUploadState(uploadState: UploadState) {
     this.setState({
-      uploadState
-    })
+      uploadState,
+    });
   }
 
   render() {
@@ -89,15 +74,18 @@ export class EditTodo extends React.PureComponent<
           {this.renderButton()}
         </Form>
       </div>
-    )
+    );
   }
 
   renderButton() {
-
     return (
       <div>
-        {this.state.uploadState === UploadState.FetchingPresignedUrl && <p>Uploading image metadata</p>}
-        {this.state.uploadState === UploadState.UploadingFile && <p>Uploading file</p>}
+        {this.state.uploadState === UploadState.FetchingPresignedUrl && (
+          <p>Uploading image metadata</p>
+        )}
+        {this.state.uploadState === UploadState.UploadingFile && (
+          <p>Uploading file</p>
+        )}
         <Button
           loading={this.state.uploadState !== UploadState.NoUpload}
           type="submit"
@@ -105,6 +93,6 @@ export class EditTodo extends React.PureComponent<
           Upload
         </Button>
       </div>
-    )
+    );
   }
 }

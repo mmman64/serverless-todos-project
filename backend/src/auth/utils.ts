@@ -1,13 +1,12 @@
-import { decode } from 'jsonwebtoken'
+import { decode } from 'jsonwebtoken';
+import { iJwtPayload } from '../types/jwtTypes/iJwtPayload';
 
-import { JwtPayload } from './JwtPayload'
-
-/**
- * Parse a JWT token and return a user id
- * @param jwtToken JWT token to parse
- * @returns a user id from the JWT token
- */
+// /**
+//  * Parse a JWT token and return a user id
+//  * @param jwtToken JWT token to parse
+//  * @returns a user id from the JWT token
+//  */
 export function parseUserId(jwtToken: string): string {
-  const decodedJwt = decode(jwtToken) as JwtPayload
-  return decodedJwt.sub
+  const decodedJwt = decode(jwtToken) as iJwtPayload;
+  return decodedJwt.sub;
 }

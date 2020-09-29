@@ -1,12 +1,34 @@
-import 'source-map-support/register'
+import 'source-map-support/register';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyHandler,
+  APIGatewayProxyResult,
+} from 'aws-lambda';
+import { iCreateTodoRequest } from '../../types/requestTypes/iCreateTodoRequest';
+import { createTodo } from '../../businessLogic/todos';
+import { createLogger } from '../../utils/logger';
 
-import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
+const logger = createLogger('createTodo');
 
-import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
+export const handler: APIGatewayProxyHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  logger.info(`Processing event: ${event}`);
 
-export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-  const newTodo: CreateTodoRequest = JSON.parse(event.body)
+  const newTodo: iCreateTodoRequest = JSON.parse(event.body);
+  logger.info(`New todo: ${newTodo}`);
 
-  // TODO: Implement creating a new TODO item
-  return undefined
-}
+  const newItem = await createTodo(newTodo, event.headers);
+  logger.info(`Created todo: ${newItem}`);
+
+  return {
+    statusCode: 201,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+    },
+    body: JSON.stringify({
+      newItem,
+    }),
+  };
+};

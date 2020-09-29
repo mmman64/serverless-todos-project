@@ -1,7 +1,6 @@
-import dateFormat from 'dateformat'
-import { History } from 'history'
-import update from 'immutability-helper'
-import * as React from 'react'
+import dateFormat from 'dateformat';
+import update from 'immutability-helper';
+import * as React from 'react';
 import {
   Button,
   Checkbox,
@@ -11,93 +10,82 @@ import {
   Icon,
   Input,
   Image,
-  Loader
-} from 'semantic-ui-react'
+  Loader,
+} from 'semantic-ui-react';
+import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api';
+import { iTodosState } from '../types/iTodosState';
+import { iTodosProps } from '../types/iTodosProps';
 
-import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
-import Auth from '../auth/Auth'
-import { Todo } from '../types/Todo'
-
-interface TodosProps {
-  auth: Auth
-  history: History
-}
-
-interface TodosState {
-  todos: Todo[]
-  newTodoName: string
-  loadingTodos: boolean
-}
-
-export class Todos extends React.PureComponent<TodosProps, TodosState> {
-  state: TodosState = {
+export class Todos extends React.PureComponent<iTodosProps, iTodosState> {
+  state: iTodosState = {
     todos: [],
     newTodoName: '',
-    loadingTodos: true
-  }
+    loadingTodos: true,
+  };
 
   handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ newTodoName: event.target.value })
-  }
+    this.setState({ newTodoName: event.target.value });
+  };
 
   onEditButtonClick = (todoId: string) => {
-    this.props.history.push(`/todos/${todoId}/edit`)
-  }
+    this.props.history.push(`/todos/${todoId}/edit`);
+  };
 
   onTodoCreate = async (event: React.ChangeEvent<HTMLButtonElement>) => {
     try {
-      const dueDate = this.calculateDueDate()
+      const dueDate = this.calculateDueDate();
       const newTodo = await createTodo(this.props.auth.getIdToken(), {
         name: this.state.newTodoName,
-        dueDate
-      })
+        dueDate,
+      });
       this.setState({
         todos: [...this.state.todos, newTodo],
-        newTodoName: ''
-      })
+        newTodoName: '',
+      });
     } catch {
-      alert('Todo creation failed')
+      alert('Todo creation failed');
     }
-  }
+  };
 
   onTodoDelete = async (todoId: string) => {
     try {
-      await deleteTodo(this.props.auth.getIdToken(), todoId)
+      await deleteTodo(this.props.auth.getIdToken(), todoId);
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId != todoId)
-      })
+        todos: this.state.todos.filter(todo => todo.todoId != todoId),
+      });
     } catch {
-      alert('Todo deletion failed')
+      alert('Todo deletion failed');
     }
-  }
+  };
 
   onTodoCheck = async (pos: number) => {
     try {
-      const todo = this.state.todos[pos]
+      const todo = this.state.todos[pos];
+
       await patchTodo(this.props.auth.getIdToken(), todo.todoId, {
         name: todo.name,
         dueDate: todo.dueDate,
-        done: !todo.done
-      })
+        done: !todo.done,
+      });
       this.setState({
         todos: update(this.state.todos, {
-          [pos]: { done: { $set: !todo.done } }
-        })
-      })
+          [pos]: { done: { $set: !todo.done } },
+        }),
+      });
     } catch {
-      alert('Todo deletion failed')
+      alert('Something went wrong!');
     }
-  }
+  };
 
   async componentDidMount() {
     try {
-      const todos = await getTodos(this.props.auth.getIdToken())
+      const todos = await getTodos(this.props.auth.getIdToken());
       this.setState({
         todos,
-        loadingTodos: false
-      })
+        loadingTodos: false,
+      });
     } catch (e) {
-      alert(`Failed to fetch todos: ${e.message}`)
+      alert(`Failed to fetch todos: ${e.message}`);
     }
   }
 
@@ -110,7 +98,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
 
         {this.renderTodos()}
       </div>
-    )
+    );
   }
 
   renderCreateTodoInput() {
@@ -123,7 +111,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
               labelPosition: 'left',
               icon: 'add',
               content: 'New task',
-              onClick: this.onTodoCreate
+              onClick: this.onTodoCreate,
             }}
             fluid
             actionPosition="left"
@@ -135,15 +123,15 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
           <Divider />
         </Grid.Column>
       </Grid.Row>
-    )
+    );
   }
 
   renderTodos() {
     if (this.state.loadingTodos) {
-      return this.renderLoading()
+      return this.renderLoading();
     }
 
-    return this.renderTodosList()
+    return this.renderTodosList();
   }
 
   renderLoading() {
@@ -153,7 +141,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
           Loading TODOs
         </Loader>
       </Grid.Row>
-    )
+    );
   }
 
   renderTodosList() {
@@ -199,16 +187,16 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
                 <Divider />
               </Grid.Column>
             </Grid.Row>
-          )
+          );
         })}
       </Grid>
-    )
+    );
   }
 
   calculateDueDate(): string {
-    const date = new Date()
-    date.setDate(date.getDate() + 7)
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
 
-    return dateFormat(date, 'yyyy-mm-dd') as string
+    return dateFormat(date, 'yyyy-mm-dd') as string;
   }
 }
